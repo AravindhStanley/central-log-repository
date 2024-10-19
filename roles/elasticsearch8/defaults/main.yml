@@ -1,2 +1,44 @@
 ---
-# defaults file for elasticsearch8
+elasticsearch8_version: "{{ VERSION }}"
+elasticsearch8_port: 9200
+
+elasticsearch8_package_url:
+  ubuntu: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elasticsearch8_version }}-amd64.deb"
+  rhel: "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-{{ elasticsearch8_version }}-x86_64.deb"
+
+elasticsearch8_package_path: "{{ BASEDIR }}/packages/elasticsearch-{{ elasticsearch8_version }}-amd64.deb"
+elasticsearch8_target_package_path: /usr/local/src/elasticsearch
+
+elasticsearch8_cluster_name: "{{ cluster_name }}"
+elasticsearch8_bootstrap: true
+elasticsearch8_custom_data_path: false
+elasticsearch8_data_path: /var/lib/elasticsearch
+elasticsearch8_certificate_directory: "{{ BASEDIR }}/certs/"
+
+elasticsearch8_configure_snapshot: false
+elasticsearch8_s3:
+  endpoint:
+  bucket:
+  path_style_access:
+  chunk_size:
+  protocol:
+  compress:
+  buffer_size:
+  client:
+  access_key:
+  secret_key:
+
+elasticsearch8_ux_packages:
+  - jq
+  - curl
+  - rsyslog
+  - aptitude
+
+elasticsearch8_tuning:
+  security:
+    nofile: 65535
+    memlock: unlimited
+    nproc: 8192
+  kernel:
+    vm_max_map_count: 262144
+    vm_swappiness: 1
