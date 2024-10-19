@@ -1,0 +1,22 @@
+---
+- name: "[Ubuntu] Download Elasticsearch DEB Packages"
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: "Check if Elasticsearch package exist"
+      ansible.builtin.stat:
+        path: "{{ elasticsearch8_package_path }}"
+      register: elasticsearch8_is_installer_present
+      tags:
+        - ubuntu
+        - elasticsearch
+
+    - name: "Download Elasticsearch DEB package"
+      ansible.builtin.get_url:
+        url: "{{ elasticsearch8_package_url.ubuntu }}"
+        dest: "{{ elasticsearch8_package_path }}"
+        mode: "0775"
+      when: elasticsearch8_is_installer_present.stat.exists is false
+      tags:
+        - ubuntu
+        - elasticsearch
