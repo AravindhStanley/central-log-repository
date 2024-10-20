@@ -1,0 +1,189 @@
+---
+- name: "Create directory to storage elasticsearch packages"
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: directory
+    mode: "0755"
+  with_items:
+    - "{{ elasticsearch8_target_package_path }}"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: "Copy Elasticsearch packages to the target machine"
+  ansible.builtin.copy:
+    src: "{{ elasticsearch8_package_path }}"
+    dest: "{{ elasticsearch8_target_package_path }}/elasticsearch-{{ elasticsearch8_version }}-amd64.deb"
+    mode: "0750"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: "Create custom data path for elasticsearch"
+  ansible.builtin.file:
+    name: "{{ elasticsearch8_data_path }}"
+    state: directory
+    mode: "0755"
+  when:
+    - elasticsearch8_custom_data_path
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Install Elasticsearch Package
+  ansible.builtin.apt:
+    deb: "{{ elasticsearch8_target_package_path }}/elasticsearch-{{ elasticsearch8_version }}-amd64.deb"
+    state: present
+    install_recommends: true
+
+- name: "Create certificate directory for elasticsearch"
+  ansible.builtin.file:
+    name: "/etc/elasticsearch/certs"
+    state: directory
+    mode: "0755"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: "Copy certificates to remote machine"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0755"
+    backup: true
+    owner: root
+    group: elasticsearch
+  with_items:
+    - src: "{{ elasticsearch8_certificate_directory }}/elastic.crt"
+      dest: "/etc/elasticsearch/certs/elastic.crt"
+    - src: "{{ elasticsearch8_certificate_directory }}/elastic.key"
+      dest: "/etc/elasticsearch/certs/elastic.key"
+    - src: "{{ elasticsearch8_certificate_directory }}/elastic_ca.crt"
+      dest: "/etc/elasticsearch/certs/elastic_ca.crt"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Copy elasticsearch configuration
+  ansible.builtin.template:
+    src: elasticsearch.yml.j2
+    dest: "/etc/elasticsearch/elasticsearch.yml"
+    backup: true
+    mode: "0660"
+    force: true
+    owner: root
+    group: elasticsearch
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Set elasticsearch bootstrap password
+  ansible.builtin.shell: |
+    printf '{{ elasticsearch8_keystore_password }}' | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x bootstrap.password
+  register: elasticsearch8_bootstrap_password
+  changed_when:
+    - elasticsearch8_bootstrap_password.rc == 0
+  failed_when:
+    - elasticsearch8_bootstrap_password.stderr.find("already exists") == -1
+    - elasticsearch8_bootstrap_password.rc != 0
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Debug
+  ansible.builtin.debug:
+    msg: "{{ elasticsearch8_bootstrap_password }}"
+
+- name: Add maximum locked memory for elasticsearch
+  ansible.builtin.lineinfile:
+    path: /etc/default/elasticsearch
+    regexp: '^MAX_LOCKED_MEMORY='
+    line: "MAX_LOCKED_MEMORY=unlimited"
+    state: present
+    insertafter: EOF
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Create over-ride folder for elasticsearch service 
+  ansible.builtin.file:
+    path: "/etc/systemd/system/elasticsearch.service.d/"
+    state: directory
+    mode: "0775"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Configure Memory Lock in elasticsearch service
+  ansible.builtin.copy:
+    src: systemd_override.conf
+    dest: /etc/systemd/system/elasticsearch.service.d/override.conf
+    mode: "0755"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Reload Systemd Daemon to update changes.
+  ansible.builtin.systemd:
+    daemon_reload: true
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Start Elasticsearch Service
+  ansible.builtin.service:
+    name: elasticsearch
+    state: restarted
+    enabled: true
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Check if elasticsearch is healthy
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:9200/_cluster/health?pretty"
+    method: GET
+    user: elastic
+    password: "{{ elasticsearch8_keystore_password }}"
+    force_basic_auth: true 
+    headers:
+      Content-Type: application/json
+    status_code: 200
+    validate_certs: false
+  retries: 30
+  delay: 5
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Set passwords for built-in users 
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:9200/_security/user/{{ item.user }}/_password"
+    method: POST
+    body:
+      password: "{{ item.password }}"
+    body_format: json 
+    user: elastic
+    password: "{{ elasticsearch8_keystore_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    status_code: 200
+    validate_certs: false
+  with_items:
+    - user: kibana_system
+      password: "{{ kibana8_system_password }}"
+  tags:
+    - ubuntu
+    - elasticsearch
+    
+- name: Disable Initial Bootstrap master settings
+  ansible.builtin.lineinfile:
+    path: "/etc/elasticsearch/elasticsearch.yml"
+    regexp: '^\s*(cluster.initial_master_nodes:.*)'
+    state: absent
+  tags:
+    - ubuntu
+    - elasticsearch
