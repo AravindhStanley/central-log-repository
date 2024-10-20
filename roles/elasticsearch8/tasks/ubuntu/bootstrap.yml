@@ -72,7 +72,7 @@
     - name: nproc
       value: "{{ elasticsearch8_tuning.security.nproc }}"
       type: soft
-  tags: 
+  tags:
     - ubuntu
     - elasticsearch
 
