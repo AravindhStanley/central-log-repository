@@ -85,7 +85,7 @@
     url: "https://{{ inventory_hostname }}:9200/_slm/policy/full-snap-standard-90"
     method: PUT
     body_format: json
-    body: 
+    body:
       schedule: "0 0 0 * * ?"
       name: <full-90-{now/d}>
       repository: "minio"
@@ -120,7 +120,7 @@
           delete:
             min_age: 1d
             actions:
-              wait_for_snapshot: 
+              wait_for_snapshot:
                 policy: "full-snap-standard-90"
               delete: {}
     user: elastic
