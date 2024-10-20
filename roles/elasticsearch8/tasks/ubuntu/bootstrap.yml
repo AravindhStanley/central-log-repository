@@ -1,0 +1,108 @@
+---
+- name: "Gather Package Facts"
+  ansible.builtin.package_facts:
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Disable AppArmor
+  ansible.builtin.service:
+    name: apparmor
+    state: stopped
+    enabled: false
+  when: "'apparmor' in ansible_facts.packages"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Disable UFW (Uncomplicated Firewall)
+  ansible.builtin.service:
+    name: ufw
+    state: stopped
+    enabled: false
+  when: "'ufw' in ansible_facts.packages"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Install useful supporting packages
+  ansible.builtin.apt:
+    name: "{{ elasticsearch8_ux_packages }}"
+    state: present
+    update_cache: true
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: Disable Swap Storage
+  block:
+    - name: Disable Swap Storage - Turning off Swap
+      ansible.builtin.command:
+        sudo swapoff -a
+      changed_when: false
+      tags:
+        - ubuntu
+        - elasticsearch
+
+    - name: Disable Swap - Modify FSTAB
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: '^([^#].*?\sswap\s+sw\s+.*)$'
+        replace: '# \1'
+      tags:
+        - ubuntu
+        - elasticsearch
+
+- name: "Tuning Security Limits"
+  community.general.pam_limits:
+    domain: "*"
+    limit_type: "{{ item.type }}"
+    limit_item: "{{ item.name }}"
+    value: "{{ item.value }}"
+  with_items:
+    - name: nofile
+      value: "{{ elasticsearch8_tuning.security.nofile }}"
+      type: soft
+    - name: memlock
+      value: "{{ elasticsearch8_tuning.security.memlock }}"
+      type: soft
+    - name: memlock
+      value: "{{ elasticsearch8_tuning.security.memlock }}"
+      type: hard
+    - name: nproc
+      value: "{{ elasticsearch8_tuning.security.nproc }}"
+      type: soft
+  tags: 
+    - ubuntu
+    - elasticsearch
+
+- name: Tuning Kernel Parameters
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    reload: true
+    state: "{{ item.state }}"
+    sysctl_file: /etc/sysctl.conf
+    sysctl_set: true
+  with_items:
+    - name: net.ipv4.ip_forward
+      value: 1
+      state: present
+    - name: net.ipv4.ip_nonlocal_bind
+      value: 1
+      state: present
+    - name: vm.max_map_count
+      value: "{{ elasticsearch8_tuning.kernel.vm_max_map_count }}"
+      state: present
+    - name: net.ipv6.conf.all.disable_ipv6
+      value: 1
+      state: present
+    - name: net.ipv6.conf.default.disable_ipv6
+      value: 1
+      state: present
+    - name: vm.swappiness
+      value: "{{ elasticsearch8_tuning.kernel.vm_swappiness }}"
+      state: present
+  tags:
+    - ubuntu
+    - elasticsearch
