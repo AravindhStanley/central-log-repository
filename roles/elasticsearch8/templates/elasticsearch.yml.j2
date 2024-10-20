@@ -1,0 +1,47 @@
+cluster.name: "{{ elasticsearch8_cluster_name }}"
+node.name: "{{ ansible_hostname }}"
+
+{% if elasticsearch8_custom_data_path == true %}
+path.data: {{ elasticsearch8_data_path }}
+{% else %}
+path.data: /var/lib/elasticsearch
+{% endif %}
+path.logs: /var/log/elasticsearch
+
+bootstrap.memory_lock: true
+network.host: {{ inventory_hostname }}
+http.port: {{ elasticsearch8_port }}
+discovery.seed_hosts: {{ groups.elasticsearch }}
+
+{% if elasticsearch8_bootstrap == true %}
+cluster.initial_master_nodes: {{ groups.elasticsearch }}
+{% endif %}
+
+transport.compress: indexing_data
+transport.compression_scheme: lz4
+action.destructive_requires_name: true
+index.store.type: hybridfs
+cluster.routing.allocation.cluster_concurrent_rebalance: 10
+cluster.routing.allocation.disk.watermark.low: 15gb
+cluster.routing.allocation.disk.watermark.high: 10gb
+cluster.routing.allocation.disk.watermark.flood_stage: 5gb
+ingest.geoip.downloader.enabled: false
+action.auto_create_index: true
+
+
+xpack.license.self_generated.type: basic
+xpack.security.transport.ssl.enabled: true
+xpack.security.enabled: true
+xpack.security.http.ssl.enabled: true
+xpack.security.authc.api_key.enabled: true
+xpack.monitoring.collection.enabled: true
+xpack.security.http.ssl.verification_mode: certificate
+xpack.security.http.ssl.key: /etc/elasticsearch/certs/elastic.key
+xpack.security.http.ssl.certificate: /etc/elasticsearch/certs/elastic.crt
+xpack.security.http.ssl.certificate_authorities: /etc/elasticsearch/certs/elastic_ca.crt
+xpack.security.transport.ssl.key: /etc/elasticsearch/certs/elastic.key
+xpack.security.transport.ssl.certificate: /etc/elasticsearch/certs/elastic.crt
+xpack.security.transport.ssl.certificate_authorities: /etc/elasticsearch/certs/elastic_ca.crt
+xpack.security.transport.ssl.verification_mode: certificate
+xpack.searchable.snapshot.shared_cache.size: 10%
+
