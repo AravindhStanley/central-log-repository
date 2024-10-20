@@ -1,0 +1,136 @@
+- name: "Create Client in Keystore"
+  when: 'elasticsearch8_configure_snapshot is true'
+  ansible.builtin.shell: |
+    printf '{{ elasticsearch8_s3.access_key }}' | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x s3.client.{{ elasticsearch8_s3.client }}.access_key
+  register: elasticsearch8_s3_secret
+  changed_when:
+    - elasticsearch8_s3_secret.rc == 0
+  failed_when:
+    - elasticsearch8_s3_secret.stderr.find("already exists") == -1
+    - elasticsearch8_s3_secret.rc != 0
+  tags:
+    - ubuntu
+    - elasticsearch
+    - snapshot
+
+- name: "Create Client in Keystore"
+  when: 'elasticsearch8_configure_snapshot is true'
+  ansible.builtin.shell: |
+    printf '{{ elasticsearch8_s3.secret_key }}' | /usr/share/elasticsearch/bin/elasticsearch-keystore add -x s3.client.{{ elasticsearch8_s3.client }}.secret_key
+  register: elasticsearch8_s3_access
+  changed_when:
+    - elasticsearch8_s3_access.rc == 0
+  failed_when:
+    - elasticsearch8_s3_access.stderr.find("already exists") == -1
+    - elasticsearch8_s3_access.rc != 0
+  tags:
+    - ubuntu
+    - elasticsearch
+    - snapshot
+
+- name: Reload Secure Settings
+  when: "elasticsearch8_configure_snapshot is true"
+  delegate_to: localhost
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:9200/_nodes/reload_secure_settings"
+    method: POST
+    user: elastic
+    password: "{{ elasticsearch8_keystore_password }}"
+    force_basic_auth: true
+    status_code: 200
+    validate_certs: false
+    headers:
+      Content-Type: application/json
+  tags:
+    - ubuntu
+    - elasticsearch
+    - snapshot
+
+- name: Configure Snapshot repository
+  when: 'elasticsearch8_configure_snapshot is true'
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:9200/_snapshot/{{ elasticsearch8_s3.client }}"
+    method: POST
+    body:
+      type: s3
+      settings:
+        bucket: "{{ elasticsearch8_s3.bucket }}"
+        path_style_access: "{{ elasticsearch8_s3.path_style_access }}"
+        chunk_size: "{{ elasticsearch8_s3.chunk_size }}"
+        endpoint: "{{ elasticsearch8_s3.endpoint }}"
+        protocol: "{{ elasticsearch8_s3.protocol }}"
+        compress: "{{ elasticsearch8_s3.compress }}"
+        buffer_size: "{{ elasticsearch8_s3.buffer_size }}"
+        client: "{{ elasticsearch8_s3.client }}"
+    body_format: json
+    user: elastic
+    password: "{{ elasticsearch8_keystore_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    status_code: 200
+    validate_certs: false
+  tags:
+    - ubuntu
+    - elasticsearch
+    - snapshot
+
+- name: Create Snapshot policy for 90 days
+  when: 'elasticsearch8_configure_snapshot is true'
+  delegate_to: localhost
+  run_once: true
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:9200/_slm/policy/full-snap-standard-90"
+    method: PUT
+    body_format: json
+    body: 
+      schedule: "0 0 0 * * ?"
+      name: <full-90-{now/d}>
+      repository: "minio"
+      config:
+        indices: ["*"]
+        ignore_unavailable: true
+        include_global_state: true
+      retention:
+        expire_after: 90d
+    user: elastic
+    password: "{{ elasticsearch8_keystore_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    status_code: 200
+    validate_certs: false
+  tags:
+    - ubuntu
+    - elasticsearch
+    - snapshot
+
+- name: Lifecycle Policy to retire hot storage
+  ansible.builtin.uri:
+    url: "https://{{ inventory_hostname }}:9200/_ilm/policy/hot-storage-retirement"
+    method: PUT
+    body_format: json
+    body:
+      policy:
+        _meta:
+          description: "Logs stored locally are to be retired after short period."
+        phases:
+          delete:
+            min_age: 1d
+            actions:
+              wait_for_snapshot: 
+                policy: "full-snap-standard-90"
+              delete: {}
+    user: elastic
+    password: "{{ elasticsearch8_keystore_password }}"
+    force_basic_auth: true
+    headers:
+      Content-Type: application/json
+    status_code: 200
+    validate_certs: false
+  tags:
+    - ubuntu
+    - elasticsearch
+    - snapshot
