@@ -1,2 +1,23 @@
 ---
-# tasks file for kibana8
+- name: Detect Operating System
+  ansible.builtin.debug:
+    msg: "Operating System Info: {{ ansible_distribution }}"
+  tags:
+    - ubuntu
+    - kibana
+
+- name: "[Ubuntu] Deploy Kibana"
+  tags:
+    - ubuntu
+    - kibana
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_distribution_major_version == "20" or ansible_distribution_major_version == "22"
+  block:
+    - name: "[1/2] Download Kibana Packages"
+      ansible.builtin.include_tasks:
+        file: ubuntu/download.yml
+
+    - name: "[2/2] Install Kibana"
+      ansible.builtin.include_tasks:
+        file: ubuntu/install.yml
