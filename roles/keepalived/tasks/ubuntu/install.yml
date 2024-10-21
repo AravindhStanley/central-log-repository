@@ -1,0 +1,35 @@
+--- 
+- name: Install Keepalived
+  ansible.builtin.apt:
+    name: "keepalived"
+    state: latest
+    update_cache: yes
+    install_recommends: yes
+  tags:
+    - ubuntu
+    - keepalived
+
+- name: Copy Keeplaived Configurations
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    backup: true
+    mode: "0660"
+    force: true
+    owner: root
+    group: root
+  tags:
+    - ubuntu
+    - keepalived
+  with_items:
+    - src: keepalived.cfg.j2
+      dest: /etc/keepalived/keepalived.conf
+
+- name: Start Keepalived Service
+  ansible.builtin.service:
+    name: keepalived
+    state: restarted
+    enabled: true
+  tags:
+    - ubuntu
+    - keepalived
