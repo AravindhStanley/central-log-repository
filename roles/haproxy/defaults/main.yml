@@ -1,0 +1,5 @@
+---
+haproxy_vip_address: "{{ log_repository_vip_address }}"
+haproxy_stats_port: 1984
+haproxy_status_port: 61313
+haproxy_certificate_directory: "{{ BASEDIR }}/certs/"

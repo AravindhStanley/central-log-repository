@@ -20,3 +20,14 @@
         name: kibana8
       tags:
         - kibana
+
+- name: "Log Repository: HAProxy"
+  hosts: gateway
+  serial: 3
+  become: true
+  tasks:
+    - name: HAProxy Deployment
+      ansible.builtin.include_role:
+        name: haproxy
+      tags:
+        - haproxy

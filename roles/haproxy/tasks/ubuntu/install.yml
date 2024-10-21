@@ -1,0 +1,94 @@
+---
+- name: Install supporting dependencies
+  ansible.builtin.apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+    install_recommends: no
+  with_items:
+    - software-properties-common
+  tags:
+    - ubuntu
+    - haproxy
+
+- name: Add HAProxy PPA repository
+  ansible.builtin.apt_repository:
+    repo: ppa:vbernat/haproxy-2.4
+    state: present
+  tags:
+    - ubuntu
+    - haproxy
+
+- name: Install HAProxy from PPA
+  ansible.builtin.apt:
+    name: "haproxy"
+    state: latest
+    update_cache: yes
+    install_recommends: yes
+  tags:
+    - ubuntu
+    - haproxy
+
+- name: Create Services directory for HAProxy
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: directory
+    mode: "0755"
+  tags:
+    - ubuntu
+    - haproxy
+  with_items:
+    - "/etc/haproxy/services.d"
+    - "/etc/haproxy/certs/"
+
+- name: Copy Frontend Certificate
+  ansible.builtin.copy:
+    src: "{{ haproxy_certificate_directory }}/haproxy.pem"
+    dest: /etc/haproxy/certs/haproxy.pem
+    mode: "0755"
+  tags:
+    - ubuntu
+    - haproxy
+
+- name: Generate HA Proxy Configurations
+  ansible.builtin.template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    backup: true
+    mode: "0660"
+    force: true
+    owner: haproxy
+    group: haproxy
+  tags:
+    - ubuntu
+    - haproxy
+  with_items:
+    - src: haproxy.cfg.j2
+      dest: /etc/haproxy/haproxy.cfg
+    - src: services.d/kibana.cfg.j2
+      dest: /etc/haproxy/services.d/kibana.cfg
+
+- name: Update Service file to include external configurations
+  ansible.builtin.replace:
+    path: /lib/systemd/system/haproxy.service
+    regexp: 'Environment="CONFIG=/etc/haproxy/haproxy.cfg" "PIDFILE=/run/haproxy.pid" "EXTRAOPTS=-S /run/haproxy-master.sock"'
+    replace: 'Environment="CONFIG=/etc/haproxy/haproxy.cfg -f /etc/haproxy/services.d" "PIDFILE=/run/haproxy.pid" "EXTRAOPTS=-S /run/haproxy-master.sock"'
+  tags:
+    - ubuntu
+    - haproxy
+
+- name: Reload Systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: yes
+  tags:
+    - ubuntu
+    - haproxy
+
+- name: Start haproxy Service
+  ansible.builtin.service:
+    name: haproxy
+    state: restarted
+    enabled: true
+  tags:
+    - ubuntu
+    - haproxy

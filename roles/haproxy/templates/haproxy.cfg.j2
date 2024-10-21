@@ -1,0 +1,37 @@
+global
+  chroot /var/lib/haproxy
+  user haproxy
+  group haproxy
+  daemon
+  log 127.0.0.1 local1
+  maxconn 40000
+  nbproc 1
+  stats socket /var/lib/haproxy/haproxy.sock group haproxy mode 660 expose-fd listeners
+
+defaults
+  log global
+  option redispatch
+  retries 3
+  timeout http-request 10s
+  timeout http-keep-alive 10s
+  timeout queue 1m
+  timeout connect 10s
+  timeout client 1m
+  timeout server 1m
+  timeout check 10s
+  balance roundrobin
+  maxconn 40000
+
+listen stats
+  bind {{ inventory_hostname }}:{{ haproxy_stats_port }}
+  mode http
+  stats enable
+  stats uri /
+  stats refresh 5s
+  stats realm Haproxy\ Stats
+
+
+frontend status
+  bind 0.0.0.0:{{ haproxy_status_port }}
+  mode http
+  monitor-uri /
