@@ -1,0 +1,91 @@
+---
+- name: "Create directory to store kibana packages"
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: directory
+    mode: "0755"
+  with_items:
+    - "{{ kibana8_target_package_path }}"
+  tags:
+    - ubuntu
+    - kibana
+
+- name: "Copy Kibana packages to the target machine"
+  ansible.builtin.copy:
+    src: "{{ kibana8_package_path }}"
+    dest: "{{ kibana8_target_package_path }}/kibana-{{ kibana8_version }}-amd64.deb"
+    mode: "0750"
+  tags:
+    - ubuntu
+    - kibana
+
+- name: "Install Kibana package" 
+  ansible.builtin.apt:
+    deb: "{{ kibana8_target_package_path }}/kibana-{{ kibana8_version }}-amd64.deb"
+    state: present
+    install_recommends: true
+  tags:
+    - ubuntu
+    - kibana
+
+- name: "Create certificate directory for elasticsearch"
+  ansible.builtin.file:
+    name: "/etc/kibana/certs"
+    state: directory
+    mode: "0755"
+  tags:
+    - ubuntu
+    - kibana
+
+- name: "Copy certificates to remote machine"
+  ansible.builtin.copy:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    mode: "0755"
+    backup: true
+    owner: root
+    group: kibana
+  with_items:
+    - src: "{{ kibana8_certificate_directory }}/elastic.crt"
+      dest: "/etc/kibana/certs/elastic.crt"
+    - src: "{{ kibana8_certificate_directory }}/elastic.key"
+      dest: "/etc/kibana/certs/elastic.key"
+    - src: "{{ kibana8_certificate_directory }}/elastic_ca.crt"
+      dest: "/etc/kibana/certs/elastic_ca.crt"
+  tags:
+    - ubuntu
+    - kibana
+
+- name: Copy Kibana Configuration
+  ansible.builtin.template:
+    src: kibana.yml.j2
+    dest: "/etc/kibana/kibana.yml"
+    backup: true
+    mode: "0660"
+    force: true
+    owner: root
+    group: kibana
+  tags:
+    - ubuntu
+    - kibana
+
+- name: Copy Kibana Node options
+  ansible.builtin.template:
+    src: node.options.j2
+    dest: /etc/kibana/node.options
+    mode: "0660"
+    backup: true
+    owner: root
+    group: kibana
+  tags:
+    - ubuntu
+    - kibana
+
+- name: Start Kibana Service
+  ansible.builtin.service:
+    name: kibana
+    state: restarted
+    enabled: true
+  tags:
+    - ubuntu
+    - kibana
