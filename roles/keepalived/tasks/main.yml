@@ -1,0 +1,18 @@
+---
+# tasks file for keepalived
+
+- name: Detect Operating System
+  ansible.builtin.debug:
+    msg: "Operating System Info: {{ ansible_distribution }}"
+
+- name: "[Ubuntu] Deploy Keepalived"
+  tags:
+    - ubuntu
+    - keepalived
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_distribution_major_version == "20" or ansible_distribution_major_version == "22"
+  block:
+    - name: "[1/1] Install Keepalived"
+      ansible.builtin.include_tasks:
+        file: ubuntu/install.yml
