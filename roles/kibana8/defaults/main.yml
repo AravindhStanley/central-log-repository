@@ -4,7 +4,7 @@ kibana8_version: "{{ VERSION }}"
 kibana8_port: 5601
 
 kibana8_package_url:
-  debian: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana8_version }}-amd64.deb"
+  ubuntu: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana8_version }}-amd64.deb"
   redhat: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana8_version }}-x86_64.rpm"
 
 kibana8_package_path: "{{ BASEDIR }}/packages/kibana-{{ kibana8_version }}-amd64.deb"
