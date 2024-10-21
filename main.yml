@@ -9,3 +9,14 @@
         name: elasticsearch8 
       tags:
         - elasticsearch
+
+- name: "Log Repository: Kibana"
+  hosts: kibana
+  serial: 3
+  become: true
+  tasks:
+    - name: Kibana Deployment
+      ansible.builtin.include_role:
+        name: kibana8
+      tags:
+        - kibana

@@ -1,0 +1,46 @@
+server:
+  uuid: "{{ kibana8_lb_uuid }}"
+  name: "{{ kibana8_cluster_name }}"
+  host: "{{ ansible_hostname }}"
+  port: "{{ kibana8_port }}"
+  ssl:
+    enabled: false
+
+elasticsearch:
+  hosts: [ {% for host in groups.elasticsearch %} "https://{{ host }}:9200", {% endfor %} ]
+  username: kibana_system
+  password: "{{ kibana8_system_password }}"
+  ssl:
+    certificate: /etc/kibana/certs/elastic.crt
+    key: /etc/kibana/certs/elastic.key
+    verificationMode: "none"
+
+xpack:
+  security.encryptionKey: {{ kibana8_security_encrpytionKey}}
+  encryptedSavedObjects.encryptionKey: {{ kibana8_encryptedSavedObjects_encryptionKey }}
+  fleet:
+    enabled: true
+
+logging.root.level: "{{ kibana8_log_level }}"
+logging:
+  appenders:
+    console:
+      type: console
+      layout:
+        type: pattern
+        highlight: true
+    file:
+      type: file
+      fileName: /var/log/kibana/kibana.log
+      layout:
+        type: pattern
+  root:
+    appenders: [file, console]
+
+## Disable Kibana to be embedded in other sites
+server.securityResponseHeaders.disableEmbedding: true
+
+## Prevent Unsafe Scripting
+csp.strict: true
+
+telemetry.enabled: false
