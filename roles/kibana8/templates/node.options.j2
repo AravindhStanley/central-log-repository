@@ -1,0 +1,12 @@
+## Rule : Have one setting per line
+
+{% if kibana8_memory_limit %}
+## Max Memory Usage
+--max-old-space-size={{kibana8_memory_limit}}
+{% endif %}
+
+--unhandled-rejections=warn
+
+--dns-result-order=ipv4first
+
+--openssl-legacy-provider
