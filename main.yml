@@ -1,0 +1,11 @@
+---
+- name: "Log Repository: Elasticsearch"
+  hosts: elasticsearch
+  serial: 3
+  become: true
+  tasks:
+    - name: Elasticsearch Deployment
+      ansible.builtin.include_role:
+        name: elasticsearch8 
+      tags:
+        - elasticsearch
