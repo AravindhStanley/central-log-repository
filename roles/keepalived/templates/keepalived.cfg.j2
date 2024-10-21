@@ -1,0 +1,28 @@
+vrrp_track_process track_haproxy {
+      process haproxy
+      weight 10
+}
+
+vrrp_instance VIP1 {
+  state {{ keepalived_state }}  
+  interface {{ keepalived_vip_interface }}
+  virtual_router_id 159
+
+  priority 100
+
+  advert_int 1
+  unicast_src_ip {{ inventory_hostname }}
+  unicast_peer {
+    {% for host in keepalived_peer.split(',') %}
+    {{ host }}
+    {% endfor %}
+  }
+
+  virtual_ipaddress {
+    {{ keepalived_vip_ip  }}/{{ keepalived_vip_cidr }} dev {{ keepalived_vip_interface }}
+  }
+
+  track_process {
+    track_haproxy
+  }
+}
