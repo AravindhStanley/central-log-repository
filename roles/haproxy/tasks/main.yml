@@ -1,2 +1,21 @@
 ---
-# tasks file for haproxy
+
+- name: Detect Operating System
+  ansible.builtin.debug:
+    msg: "Operating System Info: {{ ansible_distribution }}"
+
+- name: "[Debian] Deploy HAProxy"
+  tags:
+    - ubuntu
+    - haproxy
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_distribution_major_version == "20" or ansible_distribution_major_version == "22"
+  block:
+    - name: "[1/2] Bootstrap Servers for HAProxy"
+      ansible.builtin.include_tasks:
+        file: ubuntu/prerequisites.yml
+    
+    - name: "[2/2] Install HAProxy"
+      ansible.builtin.include_tasks:
+        file: ubuntu/install.yml
