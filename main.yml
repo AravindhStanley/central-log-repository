@@ -31,3 +31,14 @@
         name: haproxy
       tags:
         - haproxy
+
+- name: "Log Repository: Keepalived"
+  hosts: gateway
+  serial: 3
+  become: true 
+  tasks:
+    - name: Keepalived Deployment
+      ansible.builtin.include_role:
+        name: keepalived
+      tags:
+        - keepalived
