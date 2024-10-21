@@ -1,2 +1,18 @@
 ---
-# defaults file for kibana8
+## Variables for Download Phase
+kibana8_version: "{{ VERSION }}"
+kibana8_port: 5601
+
+kibana8_package_url:
+  debian: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana8_version }}-amd64.deb"
+  redhat: "https://artifacts.elastic.co/downloads/kibana/kibana-{{ kibana8_version }}-x86_64.rpm"
+
+kibana8_package_path: "{{ BASEDIR }}/packages/kibana-{{ kibana8_version }}-amd64.deb"
+kibana8_target_package_path: /usr/local/src/kibana
+
+## Variables for Install Phases
+kibana8_cluster_name: "{{ cluster_name }}"
+kibana8_lb_uuid: "a85a946c-d9ff-44b4-a72a-d4841eecae20"
+kibana8_memory_limit: 2048
+kibana8_certificate_directory: "{{ BASEDIR }}/certs/"
+kibana8_log_level: info
