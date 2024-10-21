@@ -1,0 +1,28 @@
+---
+- name: Detect Operating System
+  ansible.builtin.debug:
+    msg: "Operating System Info: {{ ansible_distribution }}"
+
+- name: "[Debian] Deploy Elasticsearch"
+  tags:
+    - ubuntu
+    - elasticsearch
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_distribution_major_version == "20" or ansible_distribution_major_version == "22"
+  block:
+    - name: "[1/4] Bootstrap Servers for Elasticsearch"
+      ansible.builtin.include_tasks:
+        file: ubuntu/bootstrap.yml
+
+    - name: "[2/4] Download Elasticsearch Packages"
+      ansible.builtin.include_tasks:
+        file: ubuntu/download.yml
+
+    - name: "[3/4] Install Elasticsearch"
+      ansible.builtin.include_tasks:
+        file: ubuntu/install.yml
+
+    - name: "[4/4] Configure Snapshot"
+      ansible.builtin.include_tasks:
+        file: ubuntu/snapshot.yml
