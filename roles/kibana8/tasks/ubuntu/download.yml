@@ -1,0 +1,21 @@
+- name: "[Ubuntu] Download Kibana DEB Packages"
+  delegate_to: localhost
+  run_once: true
+  block:
+    - name: "Check if Kibana package exist" 
+      ansible.builtin.stat:
+        path: "{{ kibana8_package_path }}"
+      register: kibana8_is_installer_present
+      tags:
+        - ubuntu
+        - kibana
+        
+    - name: "Download Kibana DEB package"
+      ansible.builtin.get_url:
+        url: "{{ kibana8_package_url.ubuntu }}"
+        dest: "{{ kibana8_package_path }}"
+        mode: "0755"
+      when: kibana8_is_installer_present.stat.exists is false
+      tags:
+        - ubuntu
+        - kibana
