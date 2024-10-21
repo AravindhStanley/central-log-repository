@@ -14,7 +14,7 @@
   block:
     - name: "[1/2] Bootstrap Servers for HAProxy"
       ansible.builtin.include_tasks:
-        file: ubuntu/prerequisites.yml
+        file: ubuntu/bootstrap.yml
     
     - name: "[2/2] Install HAProxy"
       ansible.builtin.include_tasks:
