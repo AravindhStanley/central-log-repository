@@ -50,6 +50,13 @@
     - ubuntu
     - vector
 
+- name: Modify Systemd unit file
+  ansible.builtin.lineinfile:
+    path: "/lib/systemd/system/vector.service"
+    regex: '^ExecStart='
+    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml
+    mode: "0644"
+
 - name: Start Vector Service
   ansible.builtin.service:
     name: vector
