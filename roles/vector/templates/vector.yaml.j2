@@ -25,4 +25,5 @@ sinks:
     type: console
     inputs:
       - startup_source
-    target: stdout
+    encoding:
+      codec: json
