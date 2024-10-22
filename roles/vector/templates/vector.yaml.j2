@@ -5,3 +5,24 @@ schema:
   log_namespace: true
 api:
   enabled: true
+
+## Dummy Source and Sink to ensure Vector starts
+## Vector config validation requires atleast one input and sink to start.
+## To avoid startup failure due to empty config, this dummy config is added.
+## Please do not remove this.
+
+sources:
+  startup_source:
+    type: exec
+    command:
+      - hostname
+    mode: scheduled
+    scheduled:
+      exec_interval_secs: 31536000
+
+sinks:
+  startup_sink:
+    type: console
+    inputs:
+      - startup_source
+    target: stdout
