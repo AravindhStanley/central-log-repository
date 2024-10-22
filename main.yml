@@ -42,3 +42,14 @@
         name: keepalived
       tags:
         - keepalived
+
+- name: "Log Repository: Vector"
+  hosts: gateway
+  serial: 3
+  become: true 
+  tasks:
+    - name: Vector Deployment
+      ansible.builtin.include_role:
+        name: vector
+      tags:
+        - vector
