@@ -1,0 +1,10 @@
+---
+# defaults file for vector
+vector_version: "0.41.1-1"
+
+vector_package_url:
+  ubuntu: "https://apt.vector.dev/pool/v/ve/vector_0.41.1-1_amd64.deb"
+
+vector_package_path: "{{ BASEDIR }}/packages/vector-{{vector_version}}-amd64.deb"
+
+vector_target_package_path: /usr/local/src/vector
