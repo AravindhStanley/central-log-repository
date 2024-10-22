@@ -58,14 +58,11 @@
     mode: "0644"
 
 - name: Start Vector Service
-  ansible.builtin.service:
+  ansible.builtin.systemd_service:
     name: vector
     state: restarted
     enabled: true
+    daemon_reload: true
   tags:
     - ubuntu
     - vector
-
-# - name: Modify Systemd unit file
-#   ansible.builtin.lineinfile:
-#     path: 
