@@ -1,0 +1,68 @@
+--- 
+- name: "Create directory to store vector packages"
+  ansible.builtin.file:
+    name: "{{ item }}"
+    state: directory
+    mode: "0755"
+  with_items:
+    - "{{ vector_target_package_path }}"
+  tags:
+    - ubuntu
+    - vector
+
+- name: "Copy Vector package to the target machine"
+  ansible.builtin.copy:
+    src: "{{ vector_package_path}}"
+    dest: "{{ vector_target_package_path }}/vector-{{vector_version}}-amd64.deb"
+    mode: "0750"
+  tags: 
+    - ubuntu
+    - vector
+
+- name: Install Vector Package
+  ansible.builtin.apt:
+    deb: "{{ vector_target_package_path }}/vector-{{vector_version}}-amd64.deb"
+    state: present
+    install_recommends: false
+  tags:
+    - ubuntu
+    - vector
+
+- name: Create a custom configuration directory for vector
+  ansible.builtin.file: 
+    name: "/etc/vector/config.d/"
+    state: directory
+    mode: "0755"
+    owner: vector
+    group: root
+  tags:
+    - ubuntu
+    - vector
+
+- name: Copy barebone config for vector's main config
+  ansible.builtin.template:
+    src: vector.yaml.j2
+    dest: "/etc/vector/vector.yaml"
+    mode: "0755"
+    owner: vector
+    group: root
+  tags:
+    - ubuntu
+    - vector
+
+- name: Modify Systemd unit file
+  ansible.builtin.lineinfile:
+    path: "/lib/systemd/system/vector.service"
+    regex: '^ExecStart='
+    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml
+    mode: "0644"
+
+- name: Start Vector Service
+  ansible.builtin.systemd_service:
+    name: vector
+    state: restarted
+    enabled: true
+    daemon_reload: true
+  tags:
+    - ubuntu
+    - vector

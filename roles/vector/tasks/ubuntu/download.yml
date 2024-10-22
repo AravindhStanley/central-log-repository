@@ -1,0 +1,22 @@
+---
+- name: "[Debian] Download Vector DEB packages"
+  delegate_to: localhost
+  run_once: true 
+  block:
+    - name: "[1/2] Check if vector package exists"
+      ansible.builtin.stat:
+        path: "{{ vector_package_path }}"
+      register: vector_is_installer_present
+      tags:
+        - vector
+        - ubuntu
+
+    - name: "[2/2] Download Vector deb package"
+      ansible.builtin.get_url:
+        url: "{{ vector_package_url.ubuntu }}"
+        dest: "{{ vector_package_path }}"
+        mode: "0755"
+      when: vector_is_installer_present.stat.exists is false
+      tags:
+        - ubuntu
+        - vector

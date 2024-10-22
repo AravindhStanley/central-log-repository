@@ -1,0 +1,21 @@
+---
+# tasks file for vector
+- name: Detect Operating System
+  ansible.builtin.debug:
+    msg: "Operating System Info: {{ ansible_distribution }}"
+
+- name: "[Debian] Deploy Elasticsearch"
+  tags:
+    - debian
+    - vector
+  when:
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_distribution_major_version == "20" or ansible_distribution_major_version == "22"
+  block:
+    - name: "[1/2] Download Vector Packages"
+      ansible.builtin.include_tasks:
+        file: ubuntu/download.yml
+    
+    - name: "[2/2] Install Vector"
+      ansible.builtin.include_tasks:
+        file: ubuntu/install.yml
