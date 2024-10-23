@@ -1,3 +1,4 @@
 cluster_name: "central-log-repo"
 BASEDIR: /opt/log-repository
 VERSION: 8.15.1
+action: install
