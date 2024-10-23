@@ -8,3 +8,5 @@ vector_package_url:
 vector_package_path: "{{ BASEDIR }}/packages/vector-{{vector_version}}-amd64.deb"
 
 vector_target_package_path: /usr/local/src/vector
+
+vector_config_path: "{{ BASEDIR }}/config/vector"

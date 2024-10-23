@@ -50,12 +50,48 @@
     - ubuntu
     - vector
 
+- name: Copy custom configurations for vector
+  tags:
+    - ubuntu
+    - vector
+  block:
+    - name: Find custom configurations
+      delegate_to: localhost
+      ansible.builtin.find:
+        paths: "{{ vector_config_path }}"
+        recurse: yes
+        patterns: "*.yaml"
+      register: custom_vector_configurations
+
+    - name: Debug
+      ansible.builtin.debug:
+        msg: "{{ custom_vector_configurations }}"
+
+    - name: Copy custom configurations
+      ansible.builtin.template:
+        src: "{{ item.path }}"
+        dest: "/etc/vector/config.d/"
+      with_items:
+        - "{{ custom_vector_configurations.files }}"
+      when: custom_vector_configurations.matched > 0
+
 - name: Modify Systemd unit file
   ansible.builtin.lineinfile:
     path: "/lib/systemd/system/vector.service"
     regex: '^ExecStart='
     line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml
     mode: "0644"
+  when: custom_vector_configurations.matched == 0
+  
+  
+- name: Modify Systemd unit file
+  ansible.builtin.lineinfile:
+    path: "/lib/systemd/system/vector.service"
+    regex: '^ExecStart='
+    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml --config /etc/vector/config.d/*.yaml 
+    mode: "0644"
+  when: custom_vector_configurations.matched > 0
+  
 
 - name: Start Vector Service
   ansible.builtin.systemd_service:
