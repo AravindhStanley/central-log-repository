@@ -4,9 +4,9 @@
   ansible.builtin.debug:
     msg: "Operating System Info: {{ ansible_distribution }}"
 
-- name: "[Debian] Deploy Vector"
+- name: "[Ubuntu] Deploy Vector"
   tags:
-    - debian
+    - ubuntu
     - vector
   when:
     - ansible_facts['distribution'] == "Ubuntu"
@@ -20,3 +20,22 @@
     - name: "[2/2] Install Vector"
       ansible.builtin.include_tasks:
         file: ubuntu/install.yml
+
+- name: "[Ubuntu] Reconfigure Vector"
+  tags:
+    - ubuntu
+    - vector
+  when: 
+    - ansible_facts['distribution'] == "Ubuntu"
+    - ansible_distribution_major_version == "20" or ansible_distribution_major_version == "22"
+    - action == "reconfigure"
+  block:
+    - name: Configuration - Disclaimer
+      ansible.builtin.debug:
+        msg: |
+          1. Custom configurations are obtained from {{ custom_vector_configurations }} directory.
+          2. Users are responsible to validate the configuration parameters.
+
+    - name: "[1/1] Reconfigure Vector"
+      ansible.builtin.include_tasks:
+        file: ubuntu/reconfigure.yaml
