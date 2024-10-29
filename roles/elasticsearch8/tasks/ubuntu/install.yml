@@ -24,6 +24,8 @@
     name: "{{ elasticsearch8_data_path }}"
     state: directory
     mode: "0755"
+    owner: root
+    group: elasticsearch
   when:
     - elasticsearch8_custom_data_path
   tags:
