@@ -71,6 +71,9 @@
       ansible.builtin.template:
         src: "{{ item.path }}"
         dest: "/etc/vector/config.d/"
+        mode: "0755"
+        owner: vector
+        group: root
       with_items:
         - "{{ custom_vector_configurations.files }}"
       when: custom_vector_configurations.matched > 0
