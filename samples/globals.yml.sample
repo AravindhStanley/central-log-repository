@@ -1,25 +1,25 @@
 ## Common Variables that are shared accross the roles
-cluster_name: "" 
-log_repository_vip_address: 
+cluster_name: "" ## Suggested to have unique names for each cluster deployement
+log_repository_vip_address: ## Virtual IP to be configured for Kibana, keepalived and haproxy listeners
 VERSION: 
 
 ## Elasticsearch Parameters
 elasticsearch8_bootstrap: true # Set this to false, if Elasticsearch is already installed and is running.
 elasticsearch8_configure_snapshot: false 
 elasticsearch8_s3:
-  endpoint:
-  bucket:
-  path_style_access:
-  chunk_size:
-  protocol:
-  compress:
-  buffer_size:
-  client:
-  access_key:
-  secret_key:
+  endpoint: ## IP_Address:Port
+  bucket: ## Bucket name
+  path_style_access: ## Refer if your provider is using Virtual or Path style access
+  chunk_size: ## Recommended to 64MB
+  protocol: ## Possible values - http, https
+  compress: ## Should the flight data be compressed
+  buffer_size: ## Should be >= to chunk size
+  client: ## Name of the S3 client that should be created in elasticsearch keystore
+  access_key: ## Access key for your s3 bucket
+  secret_key: ## Secret key for your s3 bucket.
 
 ## Kibana Parameters
-Kibana8_memory_limit: ## In Megabytes
+Kibana8_memory_limit: ## In Megabytes. Minumum recommended value is 2048
 
 ## Vector Parameters
 vector_version: 0.42.0
