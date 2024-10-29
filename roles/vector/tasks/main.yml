@@ -33,7 +33,7 @@
     - name: Configuration - Disclaimer
       ansible.builtin.debug:
         msg: |
-          1. Custom configurations are obtained from {{ custom_vector_configurations }} directory.
+          1. Custom configurations are obtained from {{ vector_config_path }} directory.
           2. Users are responsible to validate the configuration parameters.
 
     - name: "[1/1] Reconfigure Vector"
