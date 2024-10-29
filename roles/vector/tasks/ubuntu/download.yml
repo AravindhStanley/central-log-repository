@@ -1,7 +1,7 @@
 ---
 - name: "[Debian] Download Vector DEB packages"
   delegate_to: localhost
-  run_once: true 
+  run_once: true
   block:
     - name: "[1/2] Check if vector package exists"
       ansible.builtin.stat:

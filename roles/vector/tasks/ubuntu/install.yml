@@ -1,4 +1,4 @@
---- 
+---
 - name: "Create directory to store vector packages"
   ansible.builtin.file:
     name: "{{ item }}"
@@ -12,16 +12,16 @@
 
 - name: "Copy Vector package to the target machine"
   ansible.builtin.copy:
-    src: "{{ vector_package_path}}"
-    dest: "{{ vector_target_package_path }}/vector-{{vector_version}}-amd64.deb"
+    src: "{{ vector_package_path }}"
+    dest: "{{ vector_target_package_path }}/vector-{{ vector_version }}-amd64.deb"
     mode: "0750"
-  tags: 
+  tags:
     - ubuntu
     - vector
 
 - name: Install Vector Package
   ansible.builtin.apt:
-    deb: "{{ vector_target_package_path }}/vector-{{vector_version}}-amd64.deb"
+    deb: "{{ vector_target_package_path }}/vector-{{ vector_version }}-amd64.deb"
     state: present
     install_recommends: false
   tags:
@@ -29,7 +29,7 @@
     - vector
 
 - name: Create a custom configuration directory for vector
-  ansible.builtin.file: 
+  ansible.builtin.file:
     name: "/etc/vector/config.d/"
     state: directory
     mode: "0755"
@@ -59,7 +59,7 @@
       delegate_to: localhost
       ansible.builtin.find:
         paths: "{{ vector_config_path }}"
-        recurse: yes
+        recurse: true
         patterns: "*.yaml"
       register: custom_vector_configurations
 
@@ -78,20 +78,18 @@
 - name: Modify Systemd unit file
   ansible.builtin.lineinfile:
     path: "/lib/systemd/system/vector.service"
-    regex: '^ExecStart='
+    regex: "^ExecStart="
     line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml
     mode: "0644"
   when: custom_vector_configurations.matched == 0
-  
-  
+
 - name: Modify Systemd unit file
   ansible.builtin.lineinfile:
     path: "/lib/systemd/system/vector.service"
-    regex: '^ExecStart='
-    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml --config /etc/vector/config.d/*.yaml 
+    regex: "^ExecStart="
+    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml --config /etc/vector/config.d/*.yaml
     mode: "0644"
   when: custom_vector_configurations.matched > 0
-  
 
 - name: Start Vector Service
   ansible.builtin.systemd_service:
