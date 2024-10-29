@@ -1,0 +1,25 @@
+## Common Variables that are shared accross the roles
+cluster_name: "" 
+log_repository_vip_address: 
+VERSION: 
+
+## Elasticsearch Parameters
+elasticsearch8_bootstrap: true # Set this to false, if Elasticsearch is already installed and is running.
+elasticsearch8_configure_snapshot: false 
+elasticsearch8_s3:
+  endpoint:
+  bucket:
+  path_style_access:
+  chunk_size:
+  protocol:
+  compress:
+  buffer_size:
+  client:
+  access_key:
+  secret_key:
+
+## Kibana Parameters
+Kibana8_memory_limit: ## In Megabytes
+
+## Vector Parameters
+vector_version: 0.42.0
