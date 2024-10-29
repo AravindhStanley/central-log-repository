@@ -33,7 +33,7 @@ def generate_password(length: int = 36) -> str:
 
 
 def update_config_file(
-    user: str, password: str, file_path: Path = "/opt/log-repo/passwords.yml"
+    user: str, password: str, file_path: Path = "/opt/log-repository/passwords.yml"
 ) -> None:
 
     ## Create the password file if it does not exist
