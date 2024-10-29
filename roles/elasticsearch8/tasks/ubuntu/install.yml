@@ -19,19 +19,6 @@
     - ubuntu
     - elasticsearch
 
-- name: "Create custom data path for elasticsearch"
-  ansible.builtin.file:
-    name: "{{ elasticsearch8_data_path }}"
-    state: directory
-    mode: "0755"
-    owner: root
-    group: elasticsearch
-  when:
-    - elasticsearch8_custom_data_path
-  tags:
-    - ubuntu
-    - elasticsearch
-
 - name: Install Elasticsearch Package
   ansible.builtin.apt:
     deb: "{{ elasticsearch8_target_package_path }}/elasticsearch-{{ elasticsearch8_version }}-amd64.deb"
@@ -43,6 +30,19 @@
     name: "/etc/elasticsearch/certs"
     state: directory
     mode: "0755"
+  tags:
+    - ubuntu
+    - elasticsearch
+
+- name: "Create custom data path for elasticsearch"
+  ansible.builtin.file:
+    name: "{{ elasticsearch8_data_path }}"
+    state: directory
+    mode: "0775"
+    owner: root
+    group: elasticsearch
+  when:
+    - elasticsearch8_custom_data_path
   tags:
     - ubuntu
     - elasticsearch
