@@ -14,7 +14,7 @@
   ansible.builtin.copy:
     src: "{{ elasticsearch8_package_path }}"
     dest: "{{ elasticsearch8_target_package_path }}/elasticsearch-{{ elasticsearch8_version }}-amd64.deb"
-    mode: "0750"
+    mode: "0770"
   tags:
     - ubuntu
     - elasticsearch
