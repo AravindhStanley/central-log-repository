@@ -88,7 +88,7 @@
     body:
       schedule: "0 0 0 * * ?"
       name: <full-90-{now/d}>
-      repository: "minio"
+      repository: "{{ elasticsearch8_s3.client }}"
       config:
         indices: ["*"]
         ignore_unavailable: true
