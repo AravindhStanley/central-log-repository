@@ -90,7 +90,7 @@
   ansible.builtin.lineinfile:
     path: "/lib/systemd/system/vector.service"
     regex: "^ExecStart="
-    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml --config /etc/vector/config.d/*.yaml
+    line: ExecStart=/usr/bin/vector -w --config /etc/vector/vector.yaml --config "/etc/vector/config.d/*.yaml"
     mode: "0644"
   when: custom_vector_configurations.matched > 0
 
