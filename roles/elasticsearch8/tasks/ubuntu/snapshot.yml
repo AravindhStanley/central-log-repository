@@ -108,6 +108,7 @@
     - snapshot
 
 - name: Lifecycle Policy to retire hot storage
+  when: 'elasticsearch8_configure_snapshot is true'
   ansible.builtin.uri:
     url: "https://{{ inventory_hostname }}:9200/_ilm/policy/hot-storage-retirement"
     method: PUT
